@@ -11,6 +11,11 @@ from typing import Callable
 
 CACHE_DIR = '.my_cache'
 
+def set_cache_dir(name):
+    global CACHE_DIR
+    CACHE_DIR = name
+
+
 def remove_comments_and_docstrings(source):
     tree = ast.parse(source)
     for node in ast.walk(tree):
