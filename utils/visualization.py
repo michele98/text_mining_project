@@ -9,7 +9,7 @@ import os
 from utils.caching import ext_cache
 
 from typing import Iterable, Tuple, List, Callable
-from .similarities import find_most_interesting_words
+from utils.similarities import find_most_interesting_words
 
 
 def animate_k(out_filename : str, k_values : list, display_function : Callable,

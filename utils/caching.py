@@ -9,7 +9,7 @@ import textwrap
 
 from typing import Callable
 
-cache_dir = '.my_cache'
+CACHE_DIR = '.my_cache'
 
 def remove_comments_and_docstrings(source):
     tree = ast.parse(source)
@@ -84,9 +84,9 @@ def cache(filename: str, f: Callable, *args, **kwargs):
     if filename is None:
         filename = hashcode
 
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
-    filename = os.path.join(cache_dir, filename)
+    if not os.path.exists(CACHE_DIR):
+        os.makedirs(CACHE_DIR)
+    filename = os.path.join(CACHE_DIR, filename)
 
     if os.path.exists(filename):
         print(f'Loading cached result from: {filename}')
@@ -127,10 +127,10 @@ def ext_cache(*args, **kwargs):
     """Create an empty file with the filename equal to the hash of the provided arguments.
     If it does not exist, an empty file with the name of the hash is created.
     ATTENTION! This function has side effects, so be careful when calling it."""
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
+    if not os.path.exists(CACHE_DIR):
+        os.makedirs(CACHE_DIR)
 
-    filename = os.path.join(cache_dir, get_hash(*args, **kwargs))
+    filename = os.path.join(CACHE_DIR, get_hash(*args, **kwargs))
     print(f'Check file: {filename}', end=' ')
 
     if os.path.exists(filename):

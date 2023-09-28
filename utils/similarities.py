@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from colorama import Fore, Style
 
 
 def compute_cos_similarities(vector : np.ndarray, vectors : np.ndarray, vector_norm : float = None, 
