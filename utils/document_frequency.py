@@ -26,7 +26,7 @@ def split_set(input_set, n):
 def _compute_document_frequency(df, vocabulary):
     document_frequency = {}
 
-    for word in vocabulary:
+    for word in tqdm(vocabulary):
         document_frequency[word] = 0
         for bow in df['summary_bow']:
             if word in bow.keys():
