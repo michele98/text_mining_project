@@ -1,8 +1,5 @@
-import os
-import time
-import pickle
-
 import pandas as pd
+from tqdm import tqdm
 from multiprocessing import Process, Queue, cpu_count
 
 
@@ -45,11 +42,13 @@ def compute_document_frequency(df: pd.DataFrame, vocabulary, num_jobs=None): # s
     """Compute the document frequency of each word in the vocabulary.
     To improve performance, this function is parallelized.
     The document frequency dictionary is returned in descending order."""
+
     if type(vocabulary) is not set:
         vocabulary = set(vocabulary)
     if num_jobs is None:
         num_jobs = cpu_count()
 
+    print(f"Computing document frequency, num jobs: {num_jobs}")
     if num_jobs <= 1:
         return _compute_document_frequency(df, vocabulary)
 
