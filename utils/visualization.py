@@ -6,7 +6,7 @@ import matplotlib.colors as mcolors
 from matplotlib.animation import FuncAnimation
 
 import os
-from utils.caching import ext_cache, get_hash
+from utils.caching import ext_cache
 
 from typing import Iterable, Tuple, List, Callable
 from .similarities import find_most_interesting_words
@@ -223,9 +223,10 @@ def plot_words(u : np.ndarray, s : np.ndarray, dimensions : Tuple[int] = (0,1), 
     return ax
 
 
-def plot_genres_analysis(vh : np.ndarray, s : np.ndarray, df : pd.DataFrame, genres : List[str], 
-                         dimensions : Tuple[int] = (0,1), words : List[str] = None, plot_most_relevant_words : bool = False, 
-                         n : int = 1, u : np.ndarray = None, voc : np.ndarray = None, normalize : bool = False, 
+def plot_genres_analysis(vt : np.ndarray, s : np.ndarray, df : pd.DataFrame, genres : List[str],
+                         dimensions : Tuple[int] = (0,1), words : List[str] = None, plot_most_relevant_words : bool = False,
+                         n : int = 1, u : np.ndarray = None, voc : np.ndarray = None, normalize : bool = False,
+                         subset : np.ndarray = None,
                          k : int = 100, delete_intersection : bool = True, ax=None, scatter_kw={}):
     """Make a plot for analyzing the given genres of interest.
 
@@ -286,20 +287,17 @@ def plot_genres_analysis(vh : np.ndarray, s : np.ndarray, df : pd.DataFrame, gen
     if plot_most_relevant_words and (voc is None or u is None):
         raise ValueError('`plot_most_relevant_words` is True but either `u` or `voc` or both of them are None')
     if words is not None or plot_most_relevant_words:
-        u_s = u * np.reshape(s, newshape=(1,s.shape[0]))
+        u_s = u * s[np.newaxis,:]
         if normalize:
-            u_sk = u_s[:,:k]
-            u_sk_normalized = u_sk/np.reshape(np.sqrt(np.sum(np.square(u_sk), axis=1)),newshape=(u_sk.shape[0],1))
-            u_s = u_sk_normalized
+            norms = np.sqrt(np.sum(np.square(u_s[:,:k]), axis=1))
+            u_s = u_s[:,:k]/np.where(norms==0, 1, norms)[:,np.newaxis]
 
-    vh_s = np.reshape(s, newshape=(s.shape[0],1)) * vh
+    vt_s = s[:,np.newaxis] * vt
     if normalize:
-        vh_sk = vh_s[:k,:]
-        vh_sk_normalized = vh_sk/np.sqrt(np.sum(np.square(vh_sk), axis=0))
-        vh_s = vh_sk_normalized
+        norms = np.sqrt(np.sum(np.square(vt_s[:k]), axis=0))
+        vt_s = vt_s[:k]/np.where(norms==0, 1, norms)
 
-    dim_x = dimensions[0]
-    dim_y = dimensions[1]
+    dim_x, dim_y = dimensions
 
     if ax is None:
         w, h, dpi = 640, 640, 50
@@ -314,10 +312,10 @@ def plot_genres_analysis(vh : np.ndarray, s : np.ndarray, df : pd.DataFrame, gen
 
         if delete_intersection:
             genre_mask = np.logical_and(genre_mask, np.logical_not(intersection_mask))
-        ax.scatter(vh_s[dim_x,genre_mask], vh_s[dim_y,genre_mask], label=f'{genre} movies', c=color)
+        ax.scatter(vt_s[dim_x,genre_mask], vt_s[dim_y,genre_mask], label=f'{genre} books', c=color)
         if plot_most_relevant_words:
-            subset = np.arange(vh.shape[1])[genre_mask]
-            selected_words_ids, mean_cos_similarities = find_most_interesting_words(vh, s, u, subset=subset, n=n, k=k,
+            subset = np.arange(vt.shape[1])[genre_mask]
+            selected_words_ids, mean_cos_similarities = find_most_interesting_words(vt, s, u, subset=subset, n=n, k=k,
                                                                                     normalize=normalize)
             ax.scatter(u_s[selected_words_ids,dim_x], u_s[selected_words_ids,dim_y], c=color, marker='*', #edgecolors='black',
                        s=100, label=f'{genre} words')
@@ -339,8 +337,8 @@ def plot_genres_analysis(vh : np.ndarray, s : np.ndarray, df : pd.DataFrame, gen
             ax.annotate(txt, (words_array[i,dim_x], words_array[i,dim_y]))
 
     ax.scatter(0, 0, c='black', marker='s', label='origin')
-    ax.set_xlabel(f'LSA dimension {dim_x}')
-    ax.set_ylabel(f'LSA dimension {dim_y}')
+    ax.set_xlabel(f'LSA dim {dim_x}')
+    ax.set_ylabel(f'LSA dim {dim_y}')
     ax.set_title(f'Genre analysis in the LSA space along dimensions {dim_x} and {dim_y}')
     ax.grid()
     ax.legend()
